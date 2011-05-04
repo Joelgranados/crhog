@@ -1,0 +1,3 @@
+* What is Creator of Histogram of Oriented Gradients
+    Provides an interface to automatically transform a cropped image into a HOG
+    representation.
