@@ -1,0 +1,3 @@
+[submodule "Learcode"]
+	path = Learcode
+	url = git://github.com/Joelgranados/Learcode.git
