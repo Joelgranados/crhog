@@ -4,3 +4,4 @@ all:
 
 clean:
 	rm -f dump_rhog
+	$(shell cd Learcode; git clean -fd)
