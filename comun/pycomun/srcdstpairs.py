@@ -18,6 +18,8 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 #
+import logging
+import sys
 import os.path
 import os
 
@@ -26,13 +28,15 @@ class SrcDstPairs:
 
     def __init__(self, from_elem, to_elem, in_suffix="", out_suffix=".out"):
         if os.path.exists(to_elem) and not os.path.isdir(to_elem):
-            raise Exception("Will not overwrite %s" % to_elem)
+            sdplog.warning("Should NOT overwrite %s" % to_elem)
+            return
         if not os.path.exists(from_elem):
-            raise Exception("From element needs to exist")
+            sdplog.warning("From element SHOULD exist")
+            return
 
         to_elem_is_file = False
         if not os.path.exists(to_elem):
-            to_elem_is_file = True
+            to_elem_is_file = True #Therefore it's supposed to be a file
 
         if not os.path.isdir(from_elem): #file or link
             if to_elem_is_file:
@@ -40,7 +44,11 @@ class SrcDstPairs:
             elif not to_elem_is_file:
                 outname = os.path.join(to_elem,
                                        os.path.basename(from_elem)+out_suffix)
-                self.FromToPaths = [(from_elem, outname)]
+                if not os.paht.exists(outname):
+                    self.FromToPaths = [(from_elem, outname)]
+                else:
+                    sdplog.warning("Should NOT overwrite %s" % outname)
+                    return
 
         elif os.path.isdir(from_elem):
             if not to_elem_is_file: # to_elem is a dir.
@@ -48,7 +56,11 @@ class SrcDstPairs:
                     if entry.endswith(in_suffix):
                         inname = os.path.join(from_elem, entry)
                         outname = os.path.join(to_elem, entry+out_suffix)
-                        self.FromToPaths.append( (inname, outname) )
+                        if not os.path.exists(outname):
+                            self.FromToPaths.append( (inname, outname) )
+                        else:
+                            sdplog.warning("Should NOT overwirte %s" % outname)
+                            continue
 
             elif to_elem_is_file: # to_elem does not exists
                 for entry in os.listdir(from_elem):
@@ -59,3 +71,18 @@ class SrcDstPairs:
     @property
     def pairs(self):
         return self.FromToPaths
+
+def initLogger():
+    Logger = logging.getLogger("srcdstpairs")
+    Logger.setLevel(logging.DEBUG)
+    handler = logging.StreamHandler(sys.stdout)
+
+    #FIXME: Add a file log when we add the config file.
+    #handler = logging.FileHandler(config.log.filename)
+
+    formatter = logging.Formatter("%(asctime)s -%(levelname)s - %(message)s")
+    handler.setFormatter(formatter)
+    Logger.addHandler(handler)
+
+initLogger()
+sdplog = logging.getLogger("srcdstpairs")
